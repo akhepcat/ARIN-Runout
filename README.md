@@ -12,8 +12,8 @@ Usage:
 
 
 By default, the ArinRunout.R code will build three different graphs:
-  1 year
-  Y2K  to date
-  from Epoch
+ * 1 year
+ * Y2K  to date
+ * from Epoch
 
 
