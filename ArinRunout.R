@@ -57,8 +57,6 @@ ArinData <- data.frame(date,ips)
 
 # Plot out the data
 ArinPlot = NULL
-
-
 # Generate the last-12-months graph --
 ytd<-subset(ArinData, date>as.Date("2013-01-01"),ips)
 try((ArinPlot = ggplot( ArinData, aes(y = ips, x = date) ) + geom_point() + ylim(0,ytd[1:1,]) + xlim(as.Date("2013-01-01"), as.Date("2015-06-01")) + stat_smooth(method = 'gam', formula = y ~ ns(x, df=4), fullrange = TRUE) +
@@ -72,6 +70,7 @@ if (is.null(ArinPlot)) {
 }
 
 # Generate the Y2K graph
+ArinPlot = NULL
 ytd<-subset(ArinData, date>as.Date("2000-01-01"),ips)
 try((ArinPlot = ggplot( ArinData, aes(y = ips, x = date) ) + geom_point() + ylim(0,ytd[1:1,]) + xlim(as.Date("2000-01-01"), as.Date("2016-01-01")) + stat_smooth(method = 'gam', formula = y ~ ns(x, df=4), fullrange = TRUE) +
   scale_x_date(breaks = date_breaks("3 months"), labels = date_format("%Y-%m"), limits=c(as.Date("2000-01-01"), as.Date("2016-01-01"))) + theme(axis.text.x = element_text(angle = 90, vjust = .5)) +
@@ -83,7 +82,8 @@ if (is.null(ArinPlot)) {
   ggsave(filename = Imagefile.y2k, plot = ArinPlot, width=10, height=8)
 }
 
-# Generate the Y2K graph
+# Generate the forever graph
+ArinPlot = NULL
 try((ArinPlot = ggplot( ArinData, aes(y = ips, x = date) ) + geom_point() + ylim(0,max(ips)) + stat_smooth(method = 'gam', formula = y ~ ns(x, df=7), fullrange = TRUE) +
   scale_x_date(breaks = date_breaks("3 months"), labels = date_format("%Y-%m"), limits=c(as.Date("1993-01-01"), as.Date("2016-01-01"))) + theme(axis.text.x = element_text(angle = 90, vjust = .5)) +
   ggtitle("ARIN IPv4 Runout, 1993-present") ), silent = TRUE)
