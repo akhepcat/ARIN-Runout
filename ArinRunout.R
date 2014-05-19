@@ -1,6 +1,8 @@
 #!/usr/bin/Rscript
 #
-#  Copyright Leif Sawyer, 2014
+#  Copyright Leif Sawyer, ak.hepcat@gmail.com -  May 16, 2014
+#  GPLv3
+#  Version 0.2
 #
 
 # Shut up!

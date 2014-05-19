@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+#  Copyright Leif Sawyer, ak.hepcat@gmail.com -  May 16, 2014
+#  GPLv3
+#  Version 0.2
 
 # Change this to where you want cache files and graphs to be stored.
 DATA="/opt/data/ArinRunRate"
