@@ -6,6 +6,15 @@
 # Shut up!
 options(warn=-1)
 
+opts <- commandArgs(trailingOnly = TRUE)
+opts <- opts[1]
+if( is.na(file.info(opts)$isdir) || !file.info(opts)$isdir ) {
+	message(merge("directory",opts,"doesn't exist. Defaulting to '.'"))
+	data.dir <- '.'
+} else {
+	data.dir <- opts
+}
+
 message("Loading required libraries takes a second...")
 
 # Allow us to read foreign data-types, such as CSV files
@@ -21,10 +30,10 @@ library(scales)
 suppressPackageStartupMessages(library(mgcv))
 
 today <- format(Sys.time(), "%Y%m%d")
-Datafile <- paste("ARIN-Delegated-", as.character(today), ".csv", sep="")
-Imagefile.y2k <- paste("ARIN-Runout-Y2K-", as.character(today), ".png", sep="")
-Imagefile.full <- paste("ARIN-Runout-Full-", as.character(today), ".png", sep="")
-Imagefile.1y <- paste("ARIN-Runout-12Month-", as.character(today), ".png", sep="")
+Datafile <- paste(data.dir, "/ARIN-Delegated-", as.character(today), ".csv", sep="")
+Imagefile.y2k <- paste(data.dir, "/ARIN-Runout-Y2K-", as.character(today), ".png", sep="")
+Imagefile.full <- paste(data.dir, "/ARIN-Runout-Full-", as.character(today), ".png", sep="")
+Imagefile.1y <- paste(data.dir, "/ARIN-Runout-12Month-", as.character(today), ".png", sep="")
 
 
 # Read our CSV file into a dataframe
