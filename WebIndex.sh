@@ -50,6 +50,8 @@ EOF
 	done
 
 	cat >>$WEBROOT/index-${mydate}.html<<EOF
+<hr>
+<a href="https://github.com/akhepcat/ARIN-Runout">GPLv3 code, Distributed via GitHub</a>
 </BODY>
 </HTML>
 EOF
@@ -89,6 +91,8 @@ do
 done
 
 cat >>$WEBROOT/index.html<<EOF
+<hr>
+<a href="https://github.com/akhepcat/ARIN-Runout">GPLv3 code, Distributed via GitHub</a>
 </BODY>
 </HTML>
 EOF
