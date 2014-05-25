@@ -3,6 +3,8 @@ ARIN-Runout
 
 Quick and crappy code to plot ARIN IPv4 runout trending
 
+Check the wiki https://github.com/akhepcat/ARIN-Runout/wiki for an example graph.
+
 Requirements:
 	You will need to install the  ggplot2, nlme, splines, and scales libraries into your local R.
 
