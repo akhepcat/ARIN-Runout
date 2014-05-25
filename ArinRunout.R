@@ -9,12 +9,18 @@
 options(warn=-1)
 
 opts <- commandArgs(trailingOnly = TRUE)
-opts <- opts[1]
-if( is.na(file.info(opts)$isdir) || !file.info(opts)$isdir ) {
-	message(merge("directory",opts,"doesn't exist. Defaulting to '.'"))
+diropts <- opts[1]
+if( is.na(file.info(diropts)$isdir) || !file.info(diropts)$isdir ) {
+	message(merge("directory",diropts,"doesn't exist. Defaulting to '.'"))
 	data.dir <- '.'
 } else {
-	data.dir <- opts
+	data.dir <- diropts
+}
+dateopts <- opts[2]
+if ( is.na(dateopts) ) {
+	today <- format(Sys.time(), "%Y%m%d")
+} else {
+	today <- format(as.Date(dateopts,"%Y%m%d"), "%Y%m%d")
 }
 
 message("Loading required libraries takes a second...")
@@ -31,7 +37,6 @@ library(scales)
 # This guy is noisy on startup...
 suppressPackageStartupMessages(library(mgcv))
 
-today <- format(Sys.time(), "%Y%m%d")
 Datafile <- paste(data.dir, "/ARIN-Delegated-", as.character(today), ".csv", sep="")
 Imagefile.y2k <- paste(data.dir, "/ARIN-Runout-Y2K-", as.character(today), ".png", sep="")
 Imagefile.full <- paste(data.dir, "/ARIN-Runout-Full-", as.character(today), ".png", sep="")
@@ -59,7 +64,7 @@ ArinData <- data.frame(date,ips)
 ArinPlot = NULL
 # Generate the last-12-months graph --
 ytd<-subset(ArinData, date>as.Date("2013-01-01"),ips)
-try((ArinPlot = ggplot( ArinData, aes(y = ips, x = date) ) + geom_point() + ylim(0,ytd[1:1,]) + xlim(as.Date("2013-01-01"), as.Date("2015-06-01")) + stat_smooth(method = 'gam', formula = y ~ ns(x, df=4), fullrange = TRUE) +
+try((ArinPlot = ggplot( ArinData, aes(y = ips, x = date) ) + geom_point() + ylim(0,ytd[1:1,]) + xlim(as.Date("2013-01-01"), as.Date("2015-06-01")) + stat_smooth(method = 'gam', formula = y ~ ns(x, df=7), fullrange = TRUE) +
   scale_x_date(breaks = date_breaks("months"), labels = date_format("%Y-%m"), limits=c(as.Date("2013-01-01"), as.Date("2015-06-01"))) + theme(axis.text.x = element_text(angle = 90, vjust = .5)) +
   ggtitle("ARIN IPv4 Runout, 2013-present") ), silent = TRUE)
 if (is.null(ArinPlot)) {
@@ -72,7 +77,7 @@ if (is.null(ArinPlot)) {
 # Generate the Y2K graph
 ArinPlot = NULL
 ytd<-subset(ArinData, date>as.Date("2000-01-01"),ips)
-try((ArinPlot = ggplot( ArinData, aes(y = ips, x = date) ) + geom_point() + ylim(0,ytd[1:1,]) + xlim(as.Date("2000-01-01"), as.Date("2016-01-01")) + stat_smooth(method = 'gam', formula = y ~ ns(x, df=4), fullrange = TRUE) +
+try((ArinPlot = ggplot( ArinData, aes(y = ips, x = date) ) + geom_point() + ylim(0,ytd[1:1,]) + xlim(as.Date("2000-01-01"), as.Date("2016-01-01")) + stat_smooth(method = 'gam', formula = y ~ ns(x, df=7), fullrange = TRUE) +
   scale_x_date(breaks = date_breaks("3 months"), labels = date_format("%Y-%m"), limits=c(as.Date("2000-01-01"), as.Date("2016-01-01"))) + theme(axis.text.x = element_text(angle = 90, vjust = .5)) +
   ggtitle("ARIN IPv4 Runout, 2000-present")), silent = TRUE)
 if (is.null(ArinPlot)) {
