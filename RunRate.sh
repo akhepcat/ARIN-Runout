@@ -16,17 +16,17 @@ YR=$(date +'%Y')
 MO=$(date +'%m')
 
 # Cache for a day
-if [ ! -r delegated-arin-extended-latest -o -z "$(find . -maxdepth 1 -iname delegated-arin-extended-latest -ctime 0)" ]
+F=delegated-arin-extended-latest
+if [ ! -r $DATA/$F -o -z "$(find -L $DATA -maxdepth 1 -iname $F -ctime 0)" ]
 then
-	F=delegated-arin-extended-latest
-	wget -O ${DATA}/${F} -c ftp://ftp.arin.net/pub/stats/arin/${F}
+	wget -O ${DATA}/${F} --unlink ftp://ftp.arin.net/pub/stats/arin/${F}
 fi
 
 # Cache for a week
-if [ ! -r work_available.html -o -z "$(find . -maxdepth 1 -iname work_available.html -ctime -7)" ]
+F=work_available.html
+if [ ! -r $DATA/$F -o -z "$(find -L $DATA -maxdepth 1 -iname $F -ctime -7)" ]
 then
-	F=work_available.html
-	wget -O ${DATA}/${F}  -c https://www.arin.net/${F}
+	wget -O ${DATA}/${F} --unlink https://www.arin.net/${F}
 fi
 
 sed 's/<?xml.*//g; s/<tr>/\n<tr>/g; s/<tr><td>\///g; s/<\/td><td>/,/g; s/<\/td><\/tr>//g' ${DATA}/work_available.html | grep -v '^$' > ${DATA}/ARIN-Inventory-${DATE}.csv
@@ -51,13 +51,26 @@ echo "Total remaining addresses: $REMAIN"
 NEWTOTAL=${REMAIN}
 COUNT=2
 
+BIGC=$(wc -l ${DATA}/delegated-arin-extended-latest | awk '{print $1}')
+# figure out what we need to mod
+LINES=$(( $BIGC / 100 ))
+#LINES is 0, so null it
+LINES=${LINES##0}
+# and set a null to 1, to count individual lines as a percent... who cares about multipliers!
+LINES=${LINES:-1}
+echo -n "0% "
 for ROW in $( grep -E '\|ipv4\|.*\|(assigned|allocated)' ${DATA}/delegated-arin-extended-latest | sed 's/|/,/g;' | sort -r -n -t, -k +6)
 do
+	if [ 0 -eq $(($COUNT % $LINES)) ]
+	then
+		echo -n "#" >&2
+	fi
 	CIDRSIZE=$(echo $ROW | cut -f 5 -d,)
 	NEWTOTAL=$((NEWTOTAL + $CIDRSIZE))
 	echo "${ROW},${NEWTOTAL}" 
 	COUNT=$((COUNT + 1))
 done | sort -n -t, -k +6 | cut -d, -f 6,9 | sed 's/^\([1-2][0-9][0-9][0-9]\)\([0-9][0-9]\)\([0-9][0-9]\),/\1-\2-\3,/g' >> ${DATA}/ARIN-Delegated-${DATE}.csv
+echo " 100%"
 
 # Set the starting month as next month for our 'current' remaining...
 m=$((MO + 1))
