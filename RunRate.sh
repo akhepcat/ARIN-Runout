@@ -6,6 +6,7 @@
 
 # Change this to where you want cache files and graphs to be stored.
 DATA="/opt/data/ArinRunRate"
+WEBROOT="/var/www/ArinRunRate"
 
 #
 TDATA=$(pwd)
@@ -48,6 +49,11 @@ done
 
 echo "Total remaining addresses: $REMAIN"
 
+#a quick percentage for ipadmin...
+echo -n "<b>" > ${WEBROOT}/remaining.html
+echo "scale = 2; print (${REMAIN} / 16777216)" | bc >> ${WEBROOT}/remaining.html
+echo "</b>" >> ${WEBROOT}/remaining.html
+
 NEWTOTAL=${REMAIN}
 COUNT=2
 
@@ -78,4 +84,4 @@ m=$((MO + 1))
 # printf 'arin,,ipv4,,,%04d%02d01,projected,,%d\n' ${YR} ${m} ${REMAIN} >> ARIN-Delegated-${DATE}.csv
 printf '%04d%02d01,%d\n' ${YR} ${m} ${REMAIN} >> ${DATA}/ARIN-Delegated-${DATE}.csv
 
-Rscript ${PROGS}/ArinRunout.R ${DATA}
+Rscript ${PROGS}/ArinRunout.R --datadir ${DATA} --webdir ${WEBROOT}

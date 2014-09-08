@@ -2,28 +2,15 @@
 #
 #  Copyright Leif Sawyer, ak.hepcat@gmail.com -  May 16, 2014
 #  GPLv3
-#  Version 0.2
+#  Version 0.4
 #
 
 # Shut up!
 options(warn=-1)
-
-opts <- commandArgs(trailingOnly = TRUE)
-diropts <- opts[1]
-if( is.na(file.info(diropts)$isdir) || !file.info(diropts)$isdir ) {
-	message(merge("directory",diropts,"doesn't exist. Defaulting to '.'"))
-	data.dir <- '.'
-} else {
-	data.dir <- diropts
-}
-dateopts <- opts[2]
-if ( is.na(dateopts) ) {
-	today <- format(Sys.time(), "%Y%m%d")
-} else {
-	today <- format(as.Date(dateopts,"%Y%m%d"), "%Y%m%d")
-}
-
 message("Loading required libraries takes a second...")
+
+# first things first, lets load getopt
+library(getopt)
 
 # Allow us to read foreign data-types, such as CSV files
 library(foreign)
@@ -37,10 +24,44 @@ library(scales)
 # This guy is noisy on startup...
 suppressPackageStartupMessages(library(mgcv))
 
+optspec = matrix(c(
+	'verbose', 'v', 0, "integer", "Increase verbosity",
+	'help'	 , 'h', 0, "logical", "show this help",
+	'datadir', 'd', 2, "character", "Directory where ARIN data is stored, defaults to '.'",
+	'webdir' , 'w', 2, "character", "Root directory for images, defaults to '.'",
+	'timestamp', 't', 2, "character", "Alternate timestamp instead of 'now'"
+), byrow=TRUE, ncol=5);
+opt = getopt(optspec);
+
+if ( !is.null(opt$help) ) {
+  cat(getopt(optspec, usage=TRUE));
+  q(status=1);
+}
+
+if( is.na(file.info(opt$datadir)$isdir) || !file.info(opt$datadir)$isdir ) {
+	message(merge("directory",opt$datadir,"doesn't exist. Defaulting to '.'"))
+	data.dir <- '.'
+} else {
+	data.dir <- opt$datadir
+}
+if( is.na(file.info(opt$webdir)$isdir) || !file.info(opt$webdir)$isdir ) {
+	message(merge("directory",opt$webdir,"doesn't exist. Defaulting to '.'"))
+	web.dir <- '.'
+} else {
+	web.dir <- opt$webdir
+}
+
+if ( is.null(opt$timestamp) ) {
+	today <- format(Sys.time(), "%Y%m%d")
+} else {
+	today <- format(as.Date(opt$timestamp,"%Y%m%d"), "%Y%m%d")
+}
+
+
 Datafile <- paste(data.dir, "/ARIN-Delegated-", as.character(today), ".csv", sep="")
-Imagefile.y2k <- paste(data.dir, "/ARIN-Runout-Y2K-", as.character(today), ".png", sep="")
-Imagefile.full <- paste(data.dir, "/ARIN-Runout-Full-", as.character(today), ".png", sep="")
-Imagefile.1y <- paste(data.dir, "/ARIN-Runout-12Month-", as.character(today), ".png", sep="")
+Imagefile.y2k <- paste(web.dir, "/Y2K/ARIN-Runout-Y2K-", as.character(today), ".png", sep="")
+Imagefile.full <- paste(web.dir, "/Full/ARIN-Runout-Full-", as.character(today), ".png", sep="")
+Imagefile.1y <- paste(web.dir, "/12Month/ARIN-Runout-12Month-", as.character(today), ".png", sep="")
 
 
 # Read our CSV file into a dataframe

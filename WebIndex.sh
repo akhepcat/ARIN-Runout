@@ -7,7 +7,7 @@
 # Change this to where your cache files and graphs are stored.
 DATA="/opt/data/ArinRunRate"
 # This is where the graphs and index pages are published.  If not set, uses $DATA
-# WEBROOT="/var/www/ArinRunRate"
+WEBROOT="/var/www/ArinRunRate"
 
 #
 WEBROOT=${WEBROOT:-$DATA}
@@ -17,6 +17,13 @@ PROGS=${0%/*}
 DATE=$(date +'%Y%m%d')
 YR=$(date +'%Y')
 MO=$(date +'%m')
+
+if [ -n "$*" ];
+then
+	FORCE=1
+else
+	FORCE=0
+fi
 
 build_index()
 {
@@ -40,11 +47,11 @@ EOF
 
 	for IMAGE in 12Month Y2K Full
 	do
-		if [ -r ${WEBROOT}/ARIN-Runout-${IMAGE}-${mydate}.png ]
+		if [ -r ${WEBROOT}/${IMAGE}/ARIN-Runout-${IMAGE}-${mydate}.png ]
 		then
 			echo "Runout data for ${IMAGE} data<br>" >> $WEBROOT/index-${mydate}.html
-			echo "<a href=\"ARIN-Runout-${IMAGE}-${mydate}.png\">" >> $WEBROOT/index-${mydate}.html
-			echo "<img style=\"height:70%;\" src=\"ARIN-Runout-${IMAGE}-${mydate}.png\" \></a>" >> $WEBROOT/index-${mydate}.html
+			echo "<a href=\"${IMAGE}/ARIN-Runout-${IMAGE}-${mydate}.png\">" >> $WEBROOT/index-${mydate}.html
+			echo "<img style=\"height:70%;\" src=\"${IMAGE}/ARIN-Runout-${IMAGE}-${mydate}.png\" \></a>" >> $WEBROOT/index-${mydate}.html
 			echo "<br>" >> $WEBROOT/index-${mydate}.html
 		fi
 	done
@@ -63,7 +70,7 @@ EOF
 # Just remove the old one.  
 rm -f ${WEBROOT}/index.html
 
-DATES=$( find -L $WEBROOT -maxdepth 1 -iname "ARIN-Runout-12Month-*.png" -o -iname "ARIN-Runout-Y2K-*.png" -iname "ARIN-Runout-Full-*.png" | sed 's/\.png$//g; s/.*-//g' | sort -n)
+DATES=$( find -L $WEBROOT -maxdepth 2 -iname "ARIN-Runout-12Month-*.png" -o -iname "ARIN-Runout-Y2K-*.png" -iname "ARIN-Runout-Full-*.png" | sed 's/\.png$//g; s/.*-//g' | sort -n)
 
         cat >$WEBROOT/index.html<<EOF
 <HTML>
@@ -81,12 +88,13 @@ EOF
         
 for DATE in $DATES
 do
-	if [ ! -r index-${DATE}.html ]
+	if [ ${FORCE} -o ! -r ${WEBROOT}/index-${DATE}.html ]
 	then
+#		echo "building index for ${DATE}"
 		build_index ${DATE}
 	fi
 	echo "<a href=\"index-${DATE}.html\">Data for ${DATE}</a><br>" >>$WEBROOT/index.html
-	echo "<img style=\"height:70%;\" src=\"ARIN-Runout-12Month-${mydate}.png\" \></a>" >> $WEBROOT/index.html
+	echo "<img style=\"height:70%;\" src=\"12Month/ARIN-Runout-12Month-${DATE}.png\" \></a>" >> $WEBROOT/index.html
 	echo "<br>" >> $WEBROOT/index.html
 done
 
