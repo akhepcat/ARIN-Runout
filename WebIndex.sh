@@ -25,11 +25,15 @@ else
 	FORCE=0
 fi
 
+
+
+#### reindex all the graphs per year.
 build_index()
 {
 	mydate=$1
+	MYR=${mydate:0:4}
 	
-	cat >$WEBROOT/index-${mydate}.html<<EOF
+	cat >${WEBROOT}/${MYR}/index-${mydate}.html<<EOF
 <HTML>
 <HEAD>
 <TITLE>Index for ${DATE}</TITLE>
@@ -41,22 +45,24 @@ img { -ms-interpolation-mode: bicubic; }
 <BODY>
 <H2>Index for ${DATE}</H2>
 <br>
-<a href="index.html">Main Index</a>
+<a href="/ArinRunRate/index.html">Main Index</a><br />
+<a href="/ArinRunRate/index-${MYR}.html">Year Index</a>
 <br>
 EOF
 
 	for IMAGE in 12Month Y2K Full
 	do
+		IMGYEAR=${IMAGE//ARIN-Runout-*-/}
 		if [ -r ${WEBROOT}/${IMAGE}/ARIN-Runout-${IMAGE}-${mydate}.png ]
 		then
-			echo "Runout data for ${IMAGE} data<br>" >> $WEBROOT/index-${mydate}.html
-			echo "<a href=\"${IMAGE}/ARIN-Runout-${IMAGE}-${mydate}.png\">" >> $WEBROOT/index-${mydate}.html
-			echo "<img style=\"height:70%;\" src=\"${IMAGE}/ARIN-Runout-${IMAGE}-${mydate}.png\" \></a>" >> $WEBROOT/index-${mydate}.html
-			echo "<br>" >> $WEBROOT/index-${mydate}.html
+			echo "Runout data for ${IMAGE} data<br>" >> ${WEBROOT}/${MYR}/index-${mydate}.html
+			echo "<a href=\"/ArinRunRate/${IMAGE}/ARIN-Runout-${IMAGE}-${mydate}.png\">" >> ${WEBROOT}/${MYR}/index-${mydate}.html
+			echo "<img style=\"height:70%;\" src=\"/ArinRunRate/${IMAGE}/ARIN-Runout-${IMAGE}-${mydate}.png\" \></a>" >> ${WEBROOT}/${MYR}/index-${mydate}.html
+			echo "<br>" >> $WEBROOT/${MYR}/index-${mydate}.html
 		fi
 	done
 
-	cat >>$WEBROOT/index-${mydate}.html<<EOF
+	cat >>$WEBROOT/${MYR}/index-${mydate}.html<<EOF
 <hr>
 <a href="https://github.com/akhepcat/ARIN-Runout">GPLv3 code, Distributed via GitHub</a>
 </BODY>
@@ -64,15 +70,14 @@ EOF
 EOF
 
 }
+
 ###
-# Main prog here
+# Main index here
+DATES=$( find -L $WEBROOT -maxdepth 2 -iname "ARIN-Runout-12Month-*.png" -o -iname "ARIN-Runout-Y2K-*.png" -iname "ARIN-Runout-Full-*.png" | sed 's/\.png$//g; s/.*-//g' | sort -nu)
 
-# Just remove the old one.  
-rm -f ${WEBROOT}/index.html
+YEARS=$( echo $DATES | sed 's/\([0-9][0-9][0-9][0-9]\)[0-9][0-9][0-9][0-9]/\1\n/g; s/ *//g;' | sort -un | grep -v '^$')
 
-DATES=$( find -L $WEBROOT -maxdepth 2 -iname "ARIN-Runout-12Month-*.png" -o -iname "ARIN-Runout-Y2K-*.png" -iname "ARIN-Runout-Full-*.png" | sed 's/\.png$//g; s/.*-//g' | sort -n)
-
-        cat >$WEBROOT/index.html<<EOF
+   cat >$WEBROOT/index.html<<EOF
 <HTML>
 <HEAD>
 <TITLE>Index for Arin Runout Trending</TITLE>
@@ -86,19 +91,57 @@ img { -ms-interpolation-mode: bicubic; }
 <br>
 EOF
         
-for DATE in $DATES
+for YEAR in ${YEARS}
 do
-	if [ ${FORCE} -o ! -r ${WEBROOT}/index-${DATE}.html ]
-	then
+   test -d ${WEBROOT}/${YEAR} || mkdir -p ${WEBROOT}/${YEAR}
+
+
+   echo "<a href=\"/ArinRunRate/${YEAR}/index-${YEAR}.html\">Index for ${YEAR}</a><br>" >>${WEBROOT}/index.html
+
+   cat >$WEBROOT/${YEAR}/index-${YEAR}.html<<EOF
+<HTML>
+<HEAD>
+<TITLE>Index for Arin Runout Trending - ${YEAR}</TITLE>
+<STYLE content="text/css">
+html, body { height:100%; }
+img { -ms-interpolation-mode: bicubic; }
+</STYLE>
+</HEAD>
+<BODY>
+<H2>Index for Arin Runout Trending - ${YEAR}</H2>
+<br>
+EOF
+        
+   for DATE in ${DATES}
+   do
+      if [ -z "${DATE##*$YEAR*}" ]
+      then
+
+         if [ ${FORCE} -o ! -r ${WEBROOT}/${YEAR}/index-${DATE}.html ]
+         then
 #		echo "building index for ${DATE}"
 		build_index ${DATE}
-	fi
-	echo "<a href=\"index-${DATE}.html\">Data for ${DATE}</a><br>" >>$WEBROOT/index.html
-	echo "<img style=\"height:70%;\" src=\"12Month/ARIN-Runout-12Month-${DATE}.png\" \></a>" >> $WEBROOT/index.html
-	echo "<br>" >> $WEBROOT/index.html
+         fi
+
+         echo "<a href=\"/ArinRunRate/${YEAR}/index-${DATE}.html\">Data for ${DATE}</a><br>" >>${WEBROOT}/${YEAR}/index-${YEAR}.html
+         echo "<img style=\"height:70%;\" src=\"/ArinRunRate/12Month/ARIN-Runout-12Month-${DATE}.png\" \></a>" >> ${WEBROOT}/${YEAR}/index-${YEAR}.html
+         echo "<br>" >> ${WEBROOT}/${YEAR}/index-${YEAR}.html
+
+      fi
+   done
+
+   cat >>${WEBROOT}/${YEAR}/index-${YEAR}.html<<EOF
+<hr>
+<a href="https://github.com/akhepcat/ARIN-Runout">GPLv3 code, Distributed via GitHub</a>
+</BODY>
+</HTML>
+EOF
+
 done
 
-cat >>$WEBROOT/index.html<<EOF
+echo "<img style=\"height:70%;\" src=\"/ArinRunRate/12Month/ARIN-Runout-12Month-${DATE}.png\" \></a>" >> ${WEBROOT}/index.html
+
+   cat >>${WEBROOT}/index.html<<EOF
 <hr>
 <a href="https://github.com/akhepcat/ARIN-Runout">GPLv3 code, Distributed via GitHub</a>
 </BODY>
